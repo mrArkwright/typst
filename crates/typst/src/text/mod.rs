@@ -72,6 +72,8 @@ pub(super) fn define(global: &mut Scope) {
     global.define_func::<upper>();
     global.define_func::<smallcaps>();
     global.define_func::<lorem>();
+    global.define_func::<lorempars>();
+    global.define_func::<loremtitle>();
 }
 
 /// Customizes the look and layout of text in a variety of ways.

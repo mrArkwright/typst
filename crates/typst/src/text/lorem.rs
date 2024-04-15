@@ -1,4 +1,14 @@
-use crate::foundations::{func, Str};
+use rand_chacha::ChaCha20Rng;
+use rand::{Rng, SeedableRng};
+
+use typst::foundations::{Content, SequenceElem};
+
+use crate::foundations::{func, NativeElement, Str};
+use crate::model::ParElem;
+use crate::text::TextElem;
+
+const LIPSUM_STANDARD_SEED: u64 = 97;
+
 
 /// Creates blind text.
 ///
@@ -19,6 +29,76 @@ use crate::foundations::{func, Str};
 pub fn lorem(
     /// The length of the blind text in words.
     words: usize,
+    /// variant
+    #[named]
+    #[default(0)]
+    variant: u64,
+    /// start with lorem
+    #[named]
+    #[default(true)]
+    start_with_lorem: bool,
 ) -> Str {
-    lipsum::lipsum(words).replace("--", "–").into()
+    let seed = LIPSUM_STANDARD_SEED + variant;
+    let rng = ChaCha20Rng::seed_from_u64(seed);
+
+    if start_with_lorem {
+        lipsum::lipsum_with_rng(rng, words).replace("--", "–").into()
+    } else {
+        lipsum::lipsum_words_with_rng(rng, words).replace("--", "–").into()
+    }
+}
+
+#[func(keywords = ["Blind Text"])]
+pub fn lorempars(
+    /// The length of the blind text in words.
+    paragraphs: usize,
+    /// min-par-len
+    #[named]
+    #[default(100)]
+    min_par_len: usize,
+    /// max-par-len
+    #[named]
+    #[default(200)]
+    max_par_len: usize,
+    /// variant
+    #[named]
+    #[default(0)]
+    variant: u64,
+    /// start with lorem
+    #[named]
+    #[default(true)]
+    start_with_lorem: bool,
+) -> Content {
+    let seed = LIPSUM_STANDARD_SEED + variant;
+    let mut rng = ChaCha20Rng::seed_from_u64(seed);
+
+    let pars = (0..paragraphs)
+        .map(|i| {
+            let par_len = rng.gen_range(min_par_len..=max_par_len);
+
+            let str = if start_with_lorem && i == 0 {
+                lipsum::lipsum_with_rng(&mut rng, par_len).replace("--", "–")
+            } else {
+                lipsum::lipsum_words_with_rng(&mut rng, par_len).replace("--", "–")
+            };
+
+            let text = TextElem::packed(str);
+            let par = ParElem::new(vec![text]);
+            par.pack()
+        })
+        .collect();
+
+    SequenceElem::new(pars).pack()
+}
+
+#[func(keywords = ["Blind Text"])]
+pub fn loremtitle(
+    /// variant
+    #[named]
+    #[default(0)]
+    variant: u64,
+) -> Str {
+    let seed = LIPSUM_STANDARD_SEED + variant;
+    let rng = ChaCha20Rng::seed_from_u64(seed);
+    lipsum::lipsum_title_with_rng(rng).replace("--", "–").into()
 }

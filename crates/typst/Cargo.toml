@@ -46,6 +46,8 @@ qcms = { workspace = true }
 phf = { workspace = true }
 png = { workspace = true }
 portable-atomic = { workspace = true }
+rand = { workspace = true }
+rand_chacha = { workspace = true }
 rayon = { workspace = true }
 regex = { workspace = true }
 roxmltree = { workspace = true }
